@@ -1,0 +1,221 @@
+
+/**
+ * Title: 1 Card Payment System
+ * Author: Meher Afroz | Samanta Prapty | Swarnaly Roy | MD Nazim |Sagor
+ * Date: 2025-07-18
+ */
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+abstract class User {
+    private final String username, phoneNumber, pin, nid, address;
+    protected double balance;
+
+    public User(String username, String phoneNumber, String pin, String nid, String address, double balance) {
+        this.username = username;
+        this.phoneNumber = phoneNumber;
+        this.pin = pin;
+        this.nid = nid;
+        this.address = address;
+        this.balance = balance;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public String getPin() {
+        return pin;
+    }
+
+    public String getNid() {
+        return nid;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double amount) {
+        this.balance = amount;
+    }
+
+    abstract void showDetails();
+}
+
+class RegularUser extends User {
+    public RegularUser(String username, String phoneNumber, String pin, String nid, String address, double balance) {
+        super(username, phoneNumber, pin, nid, address, balance);
+    }
+
+    @Override
+    public void showDetails() {
+        System.out.println("\nUser Details:");
+        System.out.println("Username: " + getUsername());
+        System.out.println("Phone: " + getPhoneNumber());
+        System.out.println("NID: " + getNid());
+        System.out.println("Address: " + getAddress());
+        System.out.println("Balance: BDT " + getBalance());
+    }
+}
+
+public class CardPaymentSystem {
+    private static Scanner scanner = new Scanner(System.in);
+    private static List<User> users = new ArrayList<>();
+    private static User currentUser = null;
+
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("\n==== 1 Card Payment System ====");
+            System.out.println("1. Create Account");
+            System.out.println("2. Login");
+            System.out.println("3. Exit");
+            System.out.print("Select an option: ");
+
+            try {
+                int option = scanner.nextInt();
+                scanner.nextLine();
+
+                switch (option) {
+                    case 1:
+                        createAccount();
+                        break;
+                    case 2:
+                        login();
+                        break;
+                    case 3:
+                        System.out.println("Thank you for using the system.");
+                        return;
+                    default:
+                        System.out.println("Invalid option. Try again.");
+                }
+            } catch (Exception e) {
+                System.out.println("Invalid input. Please enter a number.");
+                scanner.nextLine();
+            }
+        }
+    }
+
+    private static void createAccount() {
+        System.out.println("\n--- Account Creation ---");
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+
+        System.out.print("Enter phone number: ");
+        String phone = scanner.nextLine();
+
+        System.out.print("Enter PIN: ");
+        String pin = scanner.nextLine();
+
+        System.out.print("Enter NID: ");
+        String nid = scanner.nextLine();
+
+        System.out.print("Enter address: ");
+        String address = scanner.nextLine();
+
+        System.out.print("Enter initial balance: ");
+        double balance = scanner.nextDouble();
+        scanner.nextLine();
+
+        User user = new RegularUser(username, phone, pin, nid, address, balance);
+        users.add(user);
+        System.out.println("Account created successfully!");
+    }
+
+    private static void login() {
+        System.out.println("\n--- Login ---");
+        System.out.print("Enter phone number: ");
+        String phone = scanner.nextLine();
+
+        System.out.print("Enter PIN: ");
+        String pin = scanner.nextLine();
+
+        for (User user : users) {
+            if (user.getPhoneNumber().equals(phone) && user.getPin().equals(pin)) {
+                currentUser = user;
+                System.out.println("Login successful!");
+                userMenu();
+                return;
+            }
+        }
+        System.out.println("Login failed. Check phone number or PIN.");
+    }
+
+    private static void userMenu() {
+        while (true) {
+            System.out.println("\n--- User Menu ---");
+            System.out.println("1. Show Details");
+            System.out.println("2. Check Balance");
+            System.out.println("3. Deposit Money");
+            System.out.println("4. Transfer Money");
+            System.out.println("5. Logout");
+            System.out.print("Choose an option: ");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (choice) {
+                case 1:
+                    currentUser.showDetails();
+                    break;
+                case 2:
+                    System.out.println("Current Balance: BDT " + currentUser.getBalance());
+                    break;
+                case 3:
+                    System.out.print("Enter amount to deposit: ");
+                    try {
+                        double deposit = scanner.nextDouble();
+                        scanner.nextLine();
+                        currentUser.setBalance(currentUser.getBalance() + deposit);
+                        System.out.println("Deposit successful!");
+                    } catch (java.util.InputMismatchException e) {
+                        System.out.println("Invalid input. Please enter a valid number.");
+                        scanner.nextLine();
+                    }
+                    break;
+                case 4:
+                    transferMoney();
+                    break;
+                case 5:
+                    currentUser = null;
+                    System.out.println("Logged out successfully.");
+                    return;
+                default:
+                    System.out.println("Invalid option. Try again.");
+            }
+        }
+    }
+
+    private static void transferMoney() {
+        System.out.print("Enter recipient phone number: ");
+        String receiverPhone = scanner.nextLine();
+
+        System.out.print("Enter amount to transfer: ");
+        double amount = scanner.nextDouble();
+        scanner.nextLine();
+
+        for (User user : users) {
+            if (user.getPhoneNumber().equals(receiverPhone)) {
+                if (currentUser.getBalance() >= amount) {
+                    currentUser.setBalance(currentUser.getBalance() - amount);
+                    user.setBalance(user.getBalance() + amount);
+                    System.out.println("Transfer successful!");
+                } else {
+                    System.out.println("Insufficient balance.");
+                }
+                return;
+            }
+        }
+        System.out.println("Recipient not found.");
+    }
+}
